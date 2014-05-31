@@ -4,7 +4,7 @@ module.exports = (robot) ->
   console.log robot
 
   # twitter mediator
-  robot.router.post "/babascript/twitter/:username", (req, res) ->
+  robot.router.post "/twitter/:username", (req, res) ->
     data = req.body
     username = req.params.username.toLowerCase()
     key = data.key
@@ -43,7 +43,7 @@ module.exports = (robot) ->
       robot.brain.data.users[username] = {}
 
   # mail mediator
-  robot.router.post "/babascript/mail/send/:mail", (req, res) ->
+  robot.router.post "/mail/send/:mail", (req, res) ->
     url = "https://api.mailgun.net/v2/"
     data = req.body
     to = req.params.mail
@@ -54,11 +54,12 @@ module.exports = (robot) ->
       text: data.key
       html: data.key
     robot.brain.data.users[req.params.mail] = data
+    console.log req
     agent.post(url+"babascript.org/messages")
     .auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
     .type("form").send(message).end (err, response) ->
       throw err if err
-      webhook = "http://babascript-hubot.herokuapp.com/babascript/mail/receive"
+      webhook = "http://#{req.headers.host}/mail/receive"
       message2 =
         priority: 11
         description: 'forwarding'
@@ -70,14 +71,14 @@ module.exports = (robot) ->
         console.log response2
         res.send 200
 
-  robot.router.post "/babascript/mail/receive/", (req, res) ->
+  robot.router.post "/mail/receive", (req, res) ->
     console.log req.body
     res.send 200
 
 
   # slack mediator
 
-  robot.router.post "/babascript/slack/:username", (req, res) ->
+  robot.router.post "/slack/:username", (req, res) ->
     data = req.body
     username = req.params.username.toLowerCase()
     robot.brain.data.users["slack:#{username}"] = data
