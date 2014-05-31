@@ -58,12 +58,12 @@ module.exports = (robot) ->
     .auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
     .type("form").send(message).end (err, response) ->
       throw err if err
-      url = "http://babascript-hubot.herokuapp.com/babascript/mail/receive"
+      webhook = "http://babascript-hubot.herokuapp.com/babascript/mail/receive"
       message2 =
         priority: 11
         description: 'forwarding'
         expression: "match_recipient('#{data.cid}@babascript.org')"
-        action: "forward('#{url}')"
+        action: "forward('#{webhook}')"
       agent.post(url+"routes").auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
       .type("form").send(message2).end (err, response2) ->
         console.log err
