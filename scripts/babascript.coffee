@@ -43,14 +43,14 @@ module.exports = (robot) ->
       robot.brain.data.users[username] = {}
 
   # mail mediator
-  robot.router.post "/babascript/mail/:mail", (req, res) ->
+  robot.router.post "/babascript/mail/send/:mail", (req, res) ->
     url = "https://api.mailgun.net/v2/"
     data = req.body
     to = req.params.mail
     message =
       from: "Babascript <#{data.cid}@babascript.org>"
       to: to
-      subject: "[babascript] please return value."
+      subject: "[babascript] please reply 'return value'"
       text: data.key
       html: data.key
     robot.brain.data.users[req.params.mail] = data
@@ -58,18 +58,21 @@ module.exports = (robot) ->
     .auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
     .type("form").send(message).end (err, response) ->
       throw err if err
+      url = "http://babascript-hubot.herokuapp.com/babascript/mail/receive"
       message2 =
-        priority: 0
+        priority: 11
         description: 'forwarding'
         expression: "match_recipient('#{data.cid}@babascript.org')"
-        action: 'forward("s09704tb@gmail.com")'
-        # action: 'stop()'
+        action: "forward('#{url}')"
       agent.post(url+"routes").auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
       .type("form").send(message2).end (err, response2) ->
         console.log err
         console.log response2
         res.send 200
-        url = "http://babascript-client-mail.herokuapp.com/"
+
+  robot.router.post "/babascript/mail/receive/", (req, res) ->
+    console.log req.body
+    res.send 200
 
 
   # slack mediator
@@ -108,4 +111,4 @@ module.exports = (robot) ->
       tuplespace: username
     agent.post(url).send(data).end (err, res) ->
       msg.send "わかった"
-      robot.brain.data.users["slack:#{username}"] = {}
+      robot.brain.data.users["slack:#{username}"] = null
