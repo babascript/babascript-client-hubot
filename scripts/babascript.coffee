@@ -52,7 +52,7 @@ module.exports = (robot) ->
       subject: "[babascript] please reply 'return value'"
       text: data.key
       html: data.key
-    robot.brain.data.users[req.params.mail] = data
+    robot.brain.data.users["mail:#{to}"] = data
     agent.post(url+"babascript.org/messages")
     .auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
     .type("form").send(message).end (err, response) ->
@@ -69,9 +69,29 @@ module.exports = (robot) ->
 
   robot.router.post "/mail/receive", (req, res) ->
     id = req.body.sender
-    data = robot.brain.data.users[id]
-    console.log data
-    res.send 200
+    task = robot.brain.data.users["mail:#{id}"]
+    if !task?
+      return
+    tuple =
+      baba: "script"
+      type: "return"
+      value: msg.match[1]
+      cid: task.cid
+      worker: task.username
+      options: {}
+      name: task.groupname
+      _task: task
+      from: "mail"
+    service = task.service || "http://manager.babascript.org/"
+    url = service + "api/webhook/#{task.cid}"
+    data =
+      tuple: tuple
+      options: {}
+      tuplespace: task.username
+    agent.post(url).send(data).end (err, res) ->
+      robot.brain.data.users["mail:#{id}"] = null
+      #TODO  Routes の解除をここでする
+      res.send 200
 
 
   # slack mediator
