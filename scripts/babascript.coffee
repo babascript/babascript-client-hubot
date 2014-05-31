@@ -1,7 +1,6 @@
 agent = require "superagent"
 
 module.exports = (robot) ->
-  console.log robot
 
   # twitter mediator
   robot.router.post "/twitter/:username", (req, res) ->
@@ -54,7 +53,6 @@ module.exports = (robot) ->
       text: data.key
       html: data.key
     robot.brain.data.users[req.params.mail] = data
-    console.log req
     agent.post(url+"babascript.org/messages")
     .auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
     .type("form").send(message).end (err, response) ->
@@ -67,12 +65,12 @@ module.exports = (robot) ->
         action: "forward('#{webhook}')"
       agent.post(url+"routes").auth("api", "key-1p4hbnz6ocpk89u5fefy9kj80eur9wx9")
       .type("form").send(message2).end (err, response2) ->
-        console.log err
-        console.log response2
         res.send 200
 
   robot.router.post "/mail/receive", (req, res) ->
-    console.log req.body
+    id = req.body.sender
+    data = robot.brain.data.users[id]
+    console.log data
     res.send 200
 
 
