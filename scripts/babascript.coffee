@@ -110,7 +110,8 @@ module.exports = (robot) ->
     username = msg.message.user.name.toLowerCase()
     task = robot.brain.data.users["slack:#{username}"]
     if !task?
-      msg.send "@#{username} 研究しろよ"
+      if msg.message.text.match /^@/
+        msg.send "@#{username} 研究しろよ"
       return
     tuple =
       baba: "script"
