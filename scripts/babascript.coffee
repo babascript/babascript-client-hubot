@@ -111,6 +111,7 @@ module.exports = (robot) ->
     task = robot.brain.data.users["slack:#{username}"]
     if !task?
       if msg.message.text.match /^@/
+        msg.reply "研究しろよ"
         msg.send "@#{username} 研究しろよ"
       return
     tuple =
@@ -130,5 +131,6 @@ module.exports = (robot) ->
       options: {}
       tuplespace: username
     agent.post(url).send(data).end (err, res) ->
+      msg.reply "わかった"
       msg.send "わかった"
       robot.brain.data.users["slack:#{username}"] = null
