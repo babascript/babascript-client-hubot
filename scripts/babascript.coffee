@@ -1,4 +1,5 @@
 agent = require "superagent"
+DOCOMO_APIKEY = '5044335861717449533936536f2e665a57674c54612e6570314c5637514d78636c6e4b4b51307438314831'
 
 module.exports = (robot) ->
 
@@ -111,7 +112,12 @@ module.exports = (robot) ->
     task = robot.brain.data.users["slack:#{username}"]
     if !task?
       if msg.message.text.match /^@/
-        msg.send "@#{username} 研究しろよ"
+        url = "https://api.apigw.smt.docomo.ne.jp/dialogue/v1/dialogue?APIKEY=#{DOCOMO_APIKEY}"
+        agent.post(url).send({utt: msg.match[1]}).end (err, res) ->
+          if err
+            msg.send "@#{username} 研究しろよ"
+          else
+            msg.send "@#{username} #{res.body.utt}"
       return
     tuple =
       baba: "script"
