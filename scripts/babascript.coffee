@@ -1,7 +1,43 @@
 agent = require "superagent"
 DOCOMO_APIKEY = '5044335861717449533936536f2e665a57674c54612e6570314c5637514d78636c6e4b4b51307438314831'
+SocketIOClient = require('socket.io-client')
+LindaSocketIOClient = require('linda-socket.io').Client
+Client = require '../../node-babascript-client/lib/client'
+API = "http://localhost:9080"
 
 module.exports = (robot) ->
+  socket = SocketIOClient.connect API, {'force new connection': true}
+  linda = new LindaSocketIOClient().connect socket
+  cids = {}
+  linda.io.on "connect", ->
+    token = process.env.NODE_BABASCRIPT_HUBOT_TOKEN
+    ts = linda.tuplespace("waiting_hubot")
+    ts.watch {baba: 'script', type: 'connect'}, (err, tuple) ->
+      id = tuple.data.id
+      # このClientは、基本的に単数であるべき
+      # というか、それ以外だときつい。
+      if cids[id]? and cids[id].linda.io.socket.open is true
+        return
+      client = new Client id, {manager: 'http://localhost:9080'}
+      client.on "get_task", (task) ->
+        console.log "get_task"
+        console.log task
+        robot.send {}, "#{@name} #{task.key}"
+        robot.brain.data.users["linda::#{@name}"] = task
+      client.on "cancel_task", (task) ->
+        console.log task
+      cids[id] = client
+    ts.watch {baba: 'script', type: 'disconnect'}, (err, tuple) ->
+      id = tuple.data.id
+      if cids[id]?
+        cids[id].linda.io.disconnect()
+        delete cids[id]
+
+  robot.respond /(.*)/i, (msg) ->
+    name = msg.message
+    console.log name
+
+
 
   # twitter mediator
   robot.router.post "/twitter/:username", (req, res) ->
@@ -112,8 +148,15 @@ module.exports = (robot) ->
     task = robot.brain.data.users["slack:#{username}"]
     if !task?
       if msg.message.text.match /^@/
+        if !robot.brain.data.zatudan?
+          robot.brain.data.zatudan = {}
+        context = robot.brain.data.zatudan[username]
         url = "https://api.apigw.smt.docomo.ne.jp/dialogue/v1/dialogue?APIKEY=#{DOCOMO_APIKEY}"
-        agent.post(url).send({utt: msg.match[1]}).end (err, res) ->
+        data = {utt: msg.match[1]}
+        if context?
+          data['context'] = context
+        agent.post(url).send(data).end (err, res) ->
+          robot.brain.data.zatudan[username] = res.body.context
           if err
             msg.send "@#{username} 研究しろよ"
           else
