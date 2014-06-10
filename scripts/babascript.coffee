@@ -149,14 +149,14 @@ module.exports = (robot) ->
     if !task?
       if msg.message.text.match /^@/
         if !robot.brain.data.zatudan?
-          robot.brain.data.zatudan = {}
-        context = robot.brain.data.zatudan[username]
+          robot.brain.data.zatudan = ""
+        context = robot.brain.data.zatudan
         url = "https://api.apigw.smt.docomo.ne.jp/dialogue/v1/dialogue?APIKEY=#{DOCOMO_APIKEY}"
         data = {utt: msg.match[1]}
         if context?
           data['context'] = context
         agent.post(url).send(data).end (err, res) ->
-          robot.brain.data.zatudan[username] = res.body.context
+          robot.brain.data.zatudan = res.body.context
           if err
             msg.send "@#{username} 研究しろよ"
           else
