@@ -9,7 +9,8 @@ module.exports = (robot) ->
     client.on "get_task", (task) ->
       debug task
       message = "@#{name} #{task.key}"
-      robot.send {room: room}, message
+      user = robot.brain.data.babascript[name]
+      robot.send {room: user.room}, message
       robot.brain.data.babascript[name].task = task
       robot.brain.save()
     client.on "return_value", (task) ->
