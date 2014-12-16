@@ -3,11 +3,6 @@ Client = require 'babascript-client'
 
 module.exports = (robot) ->
   clients = {}
-  # if !robot.brain.data.babascript?
-  #   debug robot.brain.data.babascript
-  #   debug 'not saved'
-  #   robot.brain.data.babascript = {}
-  #   robot.brain.save()
   create = (name, room) ->
     client = new Client name
     clients[name] = client
