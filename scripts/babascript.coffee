@@ -42,6 +42,7 @@ module.exports = (robot) ->
     room = msg.envelope.room
     return msg.send "@#{name} join済み" if clients[name]?
     join name, room
+    msg.send "@#{name} ok, join"
 
 
   robot.respond /user\sleave/i, (msg) ->
@@ -50,6 +51,7 @@ module.exports = (robot) ->
     name = msg.envelope.user.name
     return msg.send "@#{name} joinしてない" if !clients[name]?
     leave name
+    msg.send "@#{name} ok, leave"
 
   robot.respond /user\slist/i, (msg) ->
     message = ""
