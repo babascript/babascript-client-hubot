@@ -30,6 +30,8 @@ module.exports = (robot) ->
     robot.brain.save()
 
   setTimeout ->
+    if !robot.brain.data.babascript?
+      robot.brain.data.babascript = {}
     for k,v of robot.brain.data.babascript
       debug k,v.room
       create k, v.room
