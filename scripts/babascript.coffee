@@ -1,11 +1,12 @@
 debug = require('debug')('babascript:client:hubot')
 Client = require 'babascript-client'
+Adapter = require 'babascript-linda-adapter'
 
 module.exports = (robot) ->
   clients = {}
-  create = (name, room) ->
-    client = new Client name
-    clients[name] = client
+  createClient = (name, room) ->
+    adapter = new Adapter "http://babascript-linda.herokuapp.com", {port: 80}
+    client = new Client name, {adapter: adapter}
     client.on "get_task", (task) ->
       debug task
       message = "@#{name} #{task.key}"
@@ -16,12 +17,13 @@ module.exports = (robot) ->
     client.on "return_value", (task) ->
       delete robot.brain.data.babascript[name].task
       robot.brain.save()
+    return client
 
   join = (name, room) ->
     debug robot.brain.data.babascript
     robot.brain.data.babascript[name] = {room: room, task: null}
     robot.brain.save()
-    create name, room
+    clients[name] = createClient name, room
 
   leave = (name) ->
     debug name
@@ -35,7 +37,7 @@ module.exports = (robot) ->
       robot.brain.data.babascript = {}
     for k,v of robot.brain.data.babascript
       debug k,v.room
-      create k, v.room
+      clients[k] = createClient k, v.room
   , 2000
 
   robot.respond /user\sjoin/i, (msg) ->
