@@ -20,12 +20,15 @@ module.exports = (robot) ->
     return client
 
   join = (name, room) ->
-    debug robot.brain.data.babascript
+    debug 'join'
+    debug name
+    debug room
     robot.brain.data.babascript[name] = {room: room, task: null}
     robot.brain.save()
     clients[name] = createClient name, room
 
   leave = (name) ->
+    debug 'leave'
     debug name
     clients[name].adapter.disconnect()
     delete clients[name]
@@ -41,8 +44,6 @@ module.exports = (robot) ->
   , 2000
 
   robot.respond /user\sjoin/i, (msg) ->
-    debug msg
-    debug 'join'
     name = msg.envelope.user.name
     room = msg.envelope.room
     return msg.send "@#{name} join済み" if clients[name]?
@@ -51,8 +52,6 @@ module.exports = (robot) ->
 
 
   robot.respond /user\sleave/i, (msg) ->
-    debug msg
-    debug 'leave'
     name = msg.envelope.user.name
     return msg.send "@#{name} joinしてない" if !clients[name]?
     leave name
